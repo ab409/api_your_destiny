@@ -1,4 +1,3 @@
-from typing import Optional
 import httpx
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse
@@ -61,7 +60,7 @@ async def index(request: Request, username: str = None):
 
 
 @app.get("/{username}", response_model=GithubUserModel)
-async def get_github_profile(request: Request, username: str) -> Optional[GithubUserModel]:
+async def get_github_profile(request: Request, username: str):
     headers = {"accept": "application/vnd.github.v3+json"}
 
     response = await client.get(f"https://api.github.com/users/{username}", headers=headers)
