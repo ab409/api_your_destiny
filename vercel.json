@@ -1,19 +1,14 @@
 {
-	"version": 2,
-	"devCommand": "uvicorn api.api:app",
 	"builds": [
 		{
-		"src": "api/app.py",
+		"src": "/app.py",
 		"use": "@vercel/python"
 		}
 	],
 	"routes": [
-		{
-			"src": "/ws",
-			"dest": "api/app.py"
-		  },
-		{ "src": "/", "dest": "api/app.py" },
-		{ "src": "/docs", "dest": "api/app.py" },
-		{ "src": "/openapi.json", "dest": "api/app.py" }
+		{"src": "/ws","dest": "api/app.py"},
+		{ "src": "/", "dest": "app.py" },
+		{ "src": "/docs", "dest": "app.py" },
+		{ "src": "/openapi.json", "dest": "app.py" }
 	]
 }
