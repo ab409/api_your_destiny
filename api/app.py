@@ -2,7 +2,6 @@ import httpx
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from api.models import GithubUserModel
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -57,17 +56,3 @@ async def index(request: Request, username: str = None):
         return templates.TemplateResponse("404.html", context={"request": request})
 
     return templates.TemplateResponse("index.html", context={"request": request, "user": user})
-
-
-@app.get("/{username}", response_model=GithubUserModel)
-async def get_github_profile(request: Request, username: str):
-    headers = {"accept": "application/vnd.github.v3+json"}
-
-    response = await client.get(f"https://api.github.com/users/{username}", headers=headers)
-
-    if response.status_code == 404:
-        return None
-
-    user = GithubUserModel(**response.json())
-
-    return user
