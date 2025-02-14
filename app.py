@@ -12,7 +12,7 @@ from langchain.schema import SystemMessage, HumanMessage, AIMessage
 app = FastAPI()
 router = APIRouter()
 
-llm = ChatZhipuAI(model_name="glm-4-flash", streaming=True, zhipuai_api_key="129b7143fb6fc72b8dce6dd5a2079126.BwnhFAHRGTSBlE7W")
+llm = ChatZhipuAI(model_name="glm-4-flash", streaming=True, zhipuai_api_key="")
 
 # 创建提示模板
 prompt = PromptTemplate(
