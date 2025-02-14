@@ -1,18 +1,23 @@
 # app.py
 import uvicorn
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi import APIRouter
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 import json
-from langchain.chat_models import ChatZhipuAI
+from langchain_community.chat_models import ChatZhipuAI
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
+import os
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
 
 app = FastAPI()
 router = APIRouter()
 
-llm = ChatZhipuAI(model_name="glm-4-flash", streaming=True, zhipuai_api_key="")
+llm = ChatZhipuAI(model_name="glm-4-flash", streaming=True, zhipuai_api_key=os.getenv("ZHIPUAI_API_KEY"))
 
 # 创建提示模板
 prompt = PromptTemplate(
@@ -45,15 +50,12 @@ async def websocket_endpoint(websocket: WebSocket):
                 assistant_id = str(data.get('assistantId'))
                 
                 if assistant_id not in ASSISTANT_CONFIGS:
-                    raise ValueError("Invalid assistant ID")
+                    await websocket.send_text(json.dumps({"error": "Invalid assistant ID"}))
+                    continue
 
-                # 构建消息列表
                 chat_messages = []
-                
-                # 添加系统消息
                 chat_messages.append(SystemMessage(content=ASSISTANT_CONFIGS[assistant_id]))
                 
-                # 添加对话历史
                 for msg in messages:
                     if msg["role"] == "user":
                         chat_messages.append(HumanMessage(content=msg["content"]))
@@ -62,23 +64,28 @@ async def websocket_endpoint(websocket: WebSocket):
                 
                 print(f"Processing messages with assistant {assistant_id}")
                 
-                # 使用新的消息列表进行对话
-                async for chunk in llm.astream(chat_messages):
-                    print(chunk)
-                    if hasattr(chunk, 'content'):
-                        await websocket.send_text(chunk.content)
-                await websocket.send_text("[DONE]")
-                
+                try:
+                    async for chunk in llm.astream(chat_messages):
+                        if hasattr(chunk, 'content'):
+                            await websocket.send_text(chunk.content)
+                    await websocket.send_text("[DONE]")
+                except Exception as e:
+                    await websocket.send_text(json.dumps({"error": str(e)}))
+                    
             except json.JSONDecodeError as e:
-                await websocket.send_text(f"Error: Invalid JSON format - {str(e)}")
+                await websocket.send_text(json.dumps({"error": f"Invalid JSON format - {str(e)}"}))
             except Exception as e:
                 print(f"Error: {str(e)}")
-                await websocket.send_text(f"Error: {str(e)}")
+                await websocket.send_text(json.dumps({"error": str(e)}))
                 
+    except WebSocketDisconnect:
+        print("WebSocket disconnected")
     except Exception as e:
         print(f"WebSocket error: {e}")
-    finally:
-        await websocket.close()
+        try:
+            await websocket.close()
+        except:
+            pass
 
 @router.get('/')
 async def get_user():
