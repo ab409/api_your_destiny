@@ -2,12 +2,12 @@
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi import APIRouter
-from langchain.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
+# from langchain.prompts import PromptTemplate
+# from langchain_openai import ChatOpenAI
 import json
 from langchain_community.chat_models import ChatZhipuAI
-from langchain.schema.runnable import RunnablePassthrough
-from langchain.schema import SystemMessage, HumanMessage, AIMessage
+# from langchain.schema.runnable import RunnablePassthrough
+# from langchain.schema import SystemMessage, HumanMessage, AIMessage
 import os
 from dotenv import load_dotenv
 
@@ -20,10 +20,10 @@ router = APIRouter()
 llm = ChatZhipuAI(model_name="glm-4-flash", streaming=True, zhipuai_api_key=os.getenv("ZHIPUAI_API_KEY"))
 
 # 创建提示模板
-prompt = PromptTemplate(
-    input_variables=["question"],
-    template="请回答下面的问题：{question}"
-)
+# prompt = PromptTemplate(
+#     input_variables=["question"],
+#     template="请回答下面的问题：{question}"
+# )
 
 # 定义不同助手的系统消息
 ASSISTANT_CONFIGS = {
@@ -36,7 +36,7 @@ ASSISTANT_CONFIGS = {
 }
 
 # Replace LLMChain with RunnableSequence
-chain = prompt | llm
+# chain = prompt | llm
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
